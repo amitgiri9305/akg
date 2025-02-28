@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            padding: 10%;
+            align-items: center;
+           
+            height: 100vh;
+            background-color: #e0f7fa;
+            margin: 10%;
+      
+        }
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #007bff;
+            clip-path: circle();
+        }
+        .name {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .about {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body style="background-color: rgb(rgb(238, 136, 136) );">
+    
+   
+    <div class="profile-container">
+        <img src="IMG_20240802_073752_986.jpg" alt="Profile Picture" class="profile-pic">
+        <div class="name">Amit Kumar Giri</div>
+        <textarea class="about">My info.</textarea>
+    </div>
+</body>
+</html>
