@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuition Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #eef2f3; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        .student-list, .fee-list, .history { border: 1px solid #ccc; padding: 10px; margin-top: 10px; background: #fff; border-radius: 5px; }
+        .student-item, .fee-item { cursor: pointer; padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .student-item button { margin-left: 10px; }
+        button { background: #28a745; color: #fff; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Student Management</h2>
+        <button onclick="showStudentForm()">Add New Student</button>
+        <div id="studentForm" class="hidden">
+            <input type="text" id="name" placeholder="Name">
+            <input type="text" id="class" placeholder="Class">
+            <input type="number" id="monthlyFee" placeholder="Monthly Fee">
+            <input type="month" id="joiningMonth">
+            <button onclick="requestPassword('editStudent')">Save</button>
+        </div>
+        <div id="studentList" class="student-list"></div>
+
+        <h2>Fee Management</h2>
+        <div id="feeList" class="fee-list"></div>
+        <div id="paySection" class="hidden">
+            <h3 id="selectedStudent"></h3>
+            <p>Due Fee: <span id="dueFee"></span></p>
+            <input type="number" id="payAmount" placeholder="Amount">
+            <button onclick="requestPassword('payFee')">Pay</button>
+        </div>
+        
+        <h2>Payment History</h2>
+        <button onclick="showAllHistory()">View All Fee History</button>
+        <div id="history" class="history"></div>
+    </div>
+
+    <script>
+        let students = [];
+        let payments = [];
+        let studentIdCounter = 1;
+        let editingIndex = null;
+
+        function requestPassword(action) {
+            let password = prompt("Enter Password:");
+            if (password === "amit2005") {
+                if (action === 'payFee') payFee();
+                if (action === 'editStudent') addOrUpdateStudent();
+            } else {
+                alert("Incorrect password");
+            }
+        }
+
+        function showStudentForm() { 
+            document.getElementById('studentForm').classList.toggle('hidden'); 
+        }
+
+        function addOrUpdateStudent() {
+            let name = document.getElementById('name').value;
+            let studentClass = document.getElementById('class').value;
+            let monthlyFee = document.getElementById('monthlyFee').value;
+            let joiningMonth = document.getElementById('joiningMonth').value;
+            
+            if (!name || !studentClass || !monthlyFee || !joiningMonth) {
+                alert("All fields are required!");
+                return;
+            }
+            
+            if (editingIndex !== null) {
+                students[editingIndex] = { ...students[editingIndex], name, class: studentClass, monthlyFee: parseInt(monthlyFee), joiningMonth };
+                editingIndex = null;
+            } else {
+                let newStudent = { id: studentIdCounter++, name, class: studentClass, monthlyFee: parseInt(monthlyFee), joiningMonth, paid: 0 };
+                students.push(newStudent);
+            }
+            updateStudentList();
+            updateFeeList();
+        }
+
+        function updateStudentList() {
+            let studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            students.forEach((s, index) => {
+                let div = document.createElement('div');
+                div.className = 'student-item';
+                div.innerHTML = `${s.id}. ${s.name} - Class: ${s.class} <button onclick="editStudent(${index})">Edit</button> <button onclick="deleteStudent(${index})">Delete</button>`;
+                studentList.appendChild(div);
+            });
+        }
+
+        function editStudent(index) {
+            let student = students[index];
+            document.getElementById('name').value = student.name;
+            document.getElementById('class').value = student.class;
+            document.getElementById('monthlyFee').value = student.monthlyFee;
+            document.getElementById('joiningMonth').value = student.joiningMonth;
+            editingIndex = index;
+            showStudentForm();
+        }   
+       function deleteStudent(index) {
+            students.splice(index, 1);
+            students.forEach((s, i) => s.id = i + 1);
+            updateStudentList();
+            updateFeeList();
+       }  
+        function updateFeeList() {
+            let feeList = document.getElementById('feeList');
+            feeList.innerHTML = '';
+            students.forEach((s, index) => {
+                let dueMonths = (new Date().getMonth() + 1 - new Date(s.joiningMonth).getMonth());
+                let dueFee = dueMonths * s.monthlyFee - s.paid;
+                let div = document.createElement('div');
+                div.className = 'fee-item';
+                div.innerHTML = `${s.id}. ${s.name} - Due: ${dueFee}`;
+                div.onclick = () => showPaySection(index, dueFee);
+                feeList.appendChild(div);
+            });
+        }
+
+        function showPaySection(index, dueFee) {
+            document.getElementById('selectedStudent').textContent = students[index].name;
+            document.getElementById('dueFee').textContent = dueFee;
+            document.getElementById('paySection').dataset.index = index;
+            document.getElementById('paySection').classList.remove('hidden');
+        }
+
+        function payFee() {
+            let index = document.getElementById('paySection').dataset.index;
+            let amount = parseInt(document.getElementById('payAmount').value);
+            if (amount <= 0 || isNaN(amount)) {
+                alert("Enter a valid amount");
+                return;
+            }
+            students[index].paid += amount;
+            payments.push({ studentId: students[index].id, name: students[index].name, amount, date: new Date().toLocaleString() });
+            updateFeeList();
+            document.getElementById('paySection').classList.add('hidden');
+        }
+
+        function showAllHistory() {
+            let historyDiv = document.getElementById('history');
+            historyDiv.innerHTML = '';
+            payments.forEach(p => {
+                let div = document.createElement('div');
+                div.className = 'history-item';
+                div.textContent = `${p.studentId}. ${p.name} - Paid: ${p.amount} on ${p.date}`;
+                historyDiv.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
